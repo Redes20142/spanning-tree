@@ -1,0 +1,73 @@
+Spanning tree es un protocolo de red que sirve para evitar que un paquete
+realice viajes por la red de manera redundante.
+
+Las redes se configuran físicamente de tal manera que existen muchos caminos
+de un equipo a otro. Estos caminos pueden contener ciclos; ya un nodo
+intermedio puede retransmitir un paquete de manera que pase a otro intermedio
+que tras una serie de retransmisiones regrese a alguno de ellos y repita el
+proceso. Esto ocurre por la topología de la capa física de la red; ya que se
+busca garantizar que siempre exise un camino de un equipo a otro; sin importar
+que se encuentren en redes diferentes. Puesto que tanto las líneas como los
+nodos intermedios podrían fallar en algún momento, se construyen múltiples
+caminos entre ellos; lo cual puede provocar las redundancias exhibidas
+anteriormente.
+
+Pensando en la red como una gráfica, podemos pensar también en árboles
+generadores de la gráfica. Sabemos; por definición, que un árbol no tiene
+ciclos. Esto nos lleva a sugerir que un árbol podría ser una estructura
+adecuada para modelar a la red lógicamente y utilizar el modelo para realizar
+las conexiones lógicas.
+
+Spanning tree nos permite alcanzar éste objetivo y resolver el problema. La
+solución; en primera instancia, que propone éste protocolo es "cerrar" por
+software los enlaces redundantes. En caso de que alguno de los enlaces no
+redundantes deje de responder, es posible buscar entre los reduntantes si
+alguno deja de serlo con la nueva configuración y modificar la estructura
+lógica de la red.
+
+Para establecer las configuraciones de la red, los nodos intermedios deben
+comunicarse entre sí para acordar que enlaces van a tirar. Consideremos que
+tomamos la red como grupos no exclusivos de tres y tres nodos intermedios;
+siempre que entre éstos tres exista una conexión física activa. Ellos tres,
+acuerdan quien va a ser la raíz. Una vez que lo acuerden, se cierran todas las
+conexiones que no vallan a la raíz con las que cuenten cada uno de ellos.
+
+Para lograr lo anterior, es claro que los nodos deben comunicarse de alguna
+manera. La manera en la que se comunican; como se define en el protocolo
+Spanning Tree, es mediante el uso de ciertos mensajes de configuración llamados
+BPDU -Bridge Protocol Data Units-
+
+Los nodos se catalogan entre sí cómo -Indicadores por puente-. A la raíz del
+árbol se le llama -Root bridge- y la manera de elegirlo es por su prioridad.
+Los enlaces entre los nodos se llaman -puentes- y el enlace a la raíz a partir
+de cada otro nodo; se llama -puente raíz-. Éste puente raíz establece el camino
+de menor coste para todas las redes. Esto se logra a partir de considerar
+costes en los enlaces que unen los nodos. Este peso as arbitrario y puede ser
+configurado manualmente.
+
+Se eligen como puentes, aquellos enlaces que tienen el menor peso. En caso de
+que se encuentren dos caminos redundantes de igual menor peso; se deja aberto
+sólo el que conlleva al nodo con menor valor para su dirección MAC.
+
+La manera en la que ésto se logra es así:
+- Cuando se enciende uno de éstos nodos intermedios, supone que él es la raíz.
+Envía BPDU con su MAC y un BID (bridge identifier). El BID se compone de bridge
+priority + MAC. El bridge priority es configurado manualmente y por omisión es
+32768.
+
+- Una vez que entre ellos conozcan sus prioridades, se escoge al que tenga la
+menor cómo raíz y si hay alguna coincidencia en las prioridades; se escoge al
+que corresponda al puerto con mayor prioridad.
+
+Periódicamente, los nodos se mensajean entre ellos para comprobar que los
+enlaces siguen activos y/o el nodo remoto continúa funcionando. Si en algún
+momento, algún nodo detecta que otro con el que está enlazado deja de
+responder, debe suponer que hay ocurrido un cambio en la topología de la red
+y debe hacer algo al respecto. También, pasa lo mismo cuando se empiezan a
+recibir mensajes de un nodo desconocido (nuevo ó reconectado).
+
+Si se presenta alguno de éstos escenarios, el nodo que se percata de cambios en
+la red; envía como broadcast un BPDU especial para tal motivo. Los nodos
+entonces, reinician su estado para volver a acordar quien será la raíz bajo la
+nueva configuración.
+
