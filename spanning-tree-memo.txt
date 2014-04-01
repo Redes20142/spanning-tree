@@ -71,3 +71,22 @@ la red; envía como broadcast un BPDU especial para tal motivo. Los nodos
 entonces, reinician su estado para volver a acordar quien será la raíz bajo la
 nueva configuración.
 
+FORMATO DE LOS BPDU
+2 bytes - Identificador de protocolo - 0000000000000000 para spanning tree
+1 byte - Identificador de versión - 00000100 para SPT BPDU
+1 byte - Tipo de BPDU - 00000000 para BPDU spanning tree
+1 byte - banderas:
+	1 bit - cambio de topología
+	El resto no son utilizados
+4 bits - nodo del puente raíz
+2 bytes - Extensión de indentificador del sistema de nodo raíz
+8 bytes - Dirección MAC del nodo raíz
+4 bytes - costo del puente
+8 bytes - Identificador del puente
+2 bytes - Identificador de puerto
+2 bytes - Edad del mensaje
+2 bytes - Edad máxima
+2 bytes - Tiempo de saludo
+2 bytes - Retraso de envío
+2 bytes - Longitud del mensaje
+
