@@ -7,13 +7,19 @@ CFLAGS = -c -Wall -x c -I ./include/ -O2 -ffunction-sections -fdata-sections -fu
 
 all : build
 
-build : main.o
-	$(CC) $(G) lib/main.o -o bin/spanning-tree # TODO add tags for all necesary libs to make the main
+build : socket.o bin.o main.o
+	$(CC) $(G) lib/socket.o lib/error.o lib/bin.o lib/main.o -o bin/spanning-tree
 	chmod 774 bin/spanning-tree
 
 main.o :
-	$(CC) $(CFLAGS) $(G) src/main.c -o lib/main.o
-# TODO insert makefile tasks
+	$(CC) $(CFLAGS) $(CFLAGS) $(G) src/main.c -o lib/main.o
+
+socket.o :
+	$(CC) $(CFLAGS) $(G) src/socket.c -o lib/socket.o
+	$(CC) $(CFLAGS) $(G) src/error.c -o lib/error.o
+
+bin.o :
+	$(CC) $(CFLAGS) $(G) src/binary_converter.c -o lib/dectobin.o
 
 clean :
 	rm -f bin/*
