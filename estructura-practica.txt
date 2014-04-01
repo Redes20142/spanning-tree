@@ -1,0 +1,27 @@
+El programa a implementar va a construir un mensaje BPDU para establecer la
+configuración lógica de la red inicial y para rastrear cambios en la misma.
+Para ésto, usará paquetes más simples que los que se usa en la práctica; pero
+con la misma estructura básica. Estos se compondrán de:
+
+4 bits - identificador del nodo raíz
+2 bytes - Extensión de indentificador del sistema de nodo raíz
+8 bytes - Dirección MAC del nodo raíz
+4 bytes - costo del puente
+8 bytes - Identificador del puente
+2 bytes - Identificador de puerto
+
+Los mensajes a enviar serán cadenas de binarios; por ejemplo "0001011010100101"
+
+El programa se va a diseñar para establecer una conexión entrante y dos de
+salida. Una vez que se establezca comunicación con los equipos remotos; se
+procederá a realizar el envío los primeros mensajes BPDU entre ellos para
+decidir quien será la raíz y mostrará los resultados.
+
+La espera entre el establecimiento de la topología de la red; se dará gracias
+al uso de la función read.
+
+Las drecciones MAC a utilizar son:
+0000000000000000000000000000000000000000000000000000000000000000
+0000000000000000000000000000000000000000000000000000000000000001
+0000000000000000000000000000000000000000000000000000000000000010
+

@@ -78,7 +78,7 @@ FORMATO DE LOS BPDU
 1 byte - banderas:
 	1 bit - cambio de topología
 	El resto no son utilizados
-4 bits - nodo del puente raíz
+4 bits - identificador del nodo raíz
 2 bytes - Extensión de indentificador del sistema de nodo raíz
 8 bytes - Dirección MAC del nodo raíz
 4 bytes - costo del puente
