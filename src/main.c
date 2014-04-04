@@ -4,7 +4,7 @@
 #include "random_lib.h"
 #define BPDU_LENGTH 185
 #define EXPECTED_ARGUMENTS 9
-#define SLEEP_SECONDS 5
+#define SLEEP_SECONDS 3
 
 /*
  * Implemnta un nodo de una red que implementa el protocolo de Spanning Tree
@@ -24,9 +24,9 @@
 //indica cuantos estado del programa han sido asignados
 unsigned short int asigned_states = 0;
 //contienen los números de puertos
-unsigned short int portno, node;
+unsigned short int portno;
 //descriptor de los socket a usar
-unsigned int sock;
+unsigned int sock, node;
 //direcciones de internet de los equipos remotos
 char *node_addr;
 //identificador del nodo
@@ -39,10 +39,22 @@ unsigned short int execution_order;
 unsigned int priority;
 //pesos de los enlaces
 unsigned int p0, p1;
+//identificador del nodo raíz
+unsigned short int root_id;
+//mac de la raíz
+unsigned long long int root_mac;
+//prioridad del nodo raíz
+unsigned long long int root_priority;
+//enlace a la raíz
+unsigned int root_bridge;
 
 //prototipos de funciones
 void parse_args(char*, char*);
-void parameters_error();
+void parameters_error(void);
+void comunicate(unsigned short int);
+void receivebpdu(int, char*);
+void sendbpdu(int, char*);
+void buildmsg(char*, unsigned short int);
 
 //cuerpo del programa
 
@@ -65,125 +77,47 @@ int main(int argc, char **argv)
 	{
 		parameters_error();
 	}//vereifica que se hayan asignado todos los estado necesarios
-	id = ale0a(15);
-	mac_addr = ale0a(0xFFFFFFFF);
+	id = ale0a(7);
+	mac_addr = ale0a(0x0FFFFFFF);
 	priority = ale0a(32768);
 	p0 = ale0a(50);
 	p1 = ale0a(50);
-	unsigned short int other_id;
-	unsigned long long int other_mac;
-	unsigned long long int other_priority;
-	unsigned int other_bridge;
-	unsigned short int root_id = id;
-	unsigned long long int root_mac = mac_addr;
-	unsigned long long int root_priority = priority;
-	unsigned int root_bridge;
+	root_id = id;
+	root_mac = mac_addr;
+	root_priority = priority;
 	printf("Estableciendo conexi\u00F3n de red\n");
 	printf("Esperando por un primer nodo remoto...\n");
 	switch(execution_order)
 	{
 	case 1:
+		printf("Esperando por el equipo de orden 2...\n");
 		sock = acceptsocket(portno);
 		printf("Conectando con el equipo %s...\n", node_addr);
-		sleep(SLEEP_SECONDS +1);
+		sleep(1);
 		node = createsocketclient(node_addr, node);
 		break;
 	case 2:
 		sleep(1);
-		node = createsocketclient(node_addr, node);
 		printf("Conectando con el equipo %s...\n", node_addr);
-		sleep(SLEEP_SECONDS);
+		node = createsocketclient(node_addr, node);
+		printf("Esperando por el equipo de orden 3...\n");
 		sock = acceptsocket(portno);
 		break;
 	case 3:
+		printf("Esperando por el equipo de orden 1...\n");
 		sock = acceptsocket(portno);
 		printf("Conectando con el equipo %s...\n", node_addr);
-		sleep(SLEEP_SECONDS +2);
+		sleep(1);
 		node = createsocketclient(node_addr, node);
 		break;
 	default:
 		printf("No se ha reconocido el orden de ejecuci\u00F3n dado en -b.\n");
 		parameters_error();
 	}//establece conexión de acuerdo al orden dado*/
-	printf("Nodo %i\nMAC addrss: %llx\n", execute_order, mac_addr);
+	printf("Nodo %i\nMAC addrss: %llx\n", id, mac_addr);
 	printf("Soy la ra\u00EDz\n");
-	printf("Enviando BPDU al nodo servido\n");
-	//inicia el acuerdo del protocolo spanning tree
-	//Envía un BPDU a el nodo al que sirve
-	char *bpdu = malloc(BPDU_LENGTH);
-	char aux[64];
-	memset(bpdu, 0, BPDU_LENGTH);
-	// 4 bits del ID
-	itobin(4, id, aux, 64);
-	strcat(bpdu, aux);
-	// 8 bytes de MAC
-	itobin(64, mac_addr, aux, 64);
-	strcat(bpdu, aux);
-	// 4 bytes de costo del puente 0
-	itobin(32, p0, aux, 64);
-	strcat(bpdu, aux);
-	// 8 bytes identificador del puente
-	itobin(64, priority +mac_addrs, aux, 64);
-	strcat(bpdu, aux);
-	// finalmente, 2 bytes identificador del puerto
-	itobin(16, socket, aux, 64);
-	stcat(bpdu);
-	// envía el mensaje
-	if(writesocket(socket, bpdu, BPDU_LENGTH) < 0)
-	{
-		printf("Ha ocurrido un error al escribir en el socket\n");
-		exit(EXIT_FAILURE);
-	}//comprueba que no ocurra algún error
-	memset(bpdu, 0, BPDU_LENGTH);
-	//lee un BPDU del nodo al que sirve
-	printf("Recibiendo BPDU del nodo con direcci\u00F3n %s\n", node_addr);
-	if(readsocket(node, bpdu, BPDU_LENGTH) < 0)
-	{
-		printf("Ha ocurrido un error al leer del socket\n");
-		exit(EXIT_FAILURE);
-	}//realiza una lectura segura
-	/*
-	 * de acuerdo a el protocolo spanning-tree; se procede a comprobar quien
-	 * tiene la menor prioridad
-	 */
-	other_id = (short) bintoint(bpdu, 4);
-	bpdu += 4;
-	other_mac = bintol(bpdu);
-	bpdu += 64;
-	other_bridge = bintoi(bpdu);
-	bpdu += 32;
-	other_priority = bintol(bdpu);
-	if(priority +mac_addrs == other_priority)
-	{
-		if(other_bridge < p1)
-		{
-			printf("El nodo %i con MAC %llx es la ra\u00EDz\n", other_id,
-				other_mac);
-			root_id = other_id;
-			root_mac = other_mac;
-			root_priority = other_priority;
-			root_bridge = p1;
-		}
-		else
-		{
-			printf("Sigo siendo la ra\u00EDz (ha!)\n");
-		}
-	}
-	else if(priority +mac_addrs > other_priority)
-	{
-		printf("El nodo %i con MAC %llx es la ra\u00EDz\n", other_id,
-			other_mac);
-		root_id = other_id;
-		root_mac = other_mac;
-		root_priority = other_priority;
-		root_bridge = p1;
-	}
-	else
-	{
-		printf("Sigo siendo la ra\u00EDz (ha!)\n");
-	}//decide quien fue la raíz entre este y uno de los dos nodos
-	//repite el proceso para el siguiente nodo
-	//TODO
+	comunicate(1);
+	comunicate(2);
 	free(node_addr);
 	return 0;
 }//main
@@ -233,7 +167,7 @@ void parse_args(char *arg, char *val)
  * que ha ingresado mal los parametros esperados y no se puede asignar un
  * estado apropiado para ejecutar)
  */
-void parameters_error()
+void parameters_error(void)
 {
 	printf("Debe proporcionar 4 argumentos al programa.\nEstos son:\n\t");
 	printf("-p El n\u00FAmero de puerto que va a recibir paquetes de uno ");
@@ -266,4 +200,169 @@ void parameters_error()
 	printf("atiende al equipo 1 y se conecta con el 2\n\n");
 	exit(EXIT_FAILURE);
 }//parameters_error
+
+/*
+ * Se comunica con los otros nodos de la red para configurar la misma de
+ * acuerdo al protocolo spanning-tree.
+ * Recibe como parametro un entero que indica de quien es turno de con
+ * establecer la conexión: 0 el nodo servido, 1 el nodo servidor.
+ */
+void comunicate(unsigned short int turn)
+{
+	//inicia el acuerdo del protocolo spanning tree
+	//Envía un BPDU a el nodo al que sirve
+	char *bpdu = malloc(BPDU_LENGTH);
+	memset(bpdu, 0, BPDU_LENGTH);
+	// envía ó recibe un BPDU dependiendo el orden de ejcución indicado
+	if(turn == 1)
+	{
+		switch(execution_order)
+		{
+		case 1:
+			buildmsg(bpdu, turn);
+			printf("Enviando el BPDU %s...\n", bpdu);
+			sleep(1);
+			sendbpdu(node, bpdu);
+			sendbpdu(sock, bpdu);
+			sleep(SLEEP_SECONDS);
+			return;
+		case 2:
+			printf("Recibiendo BPDU...\n");
+			receivebpdu(node, bpdu);
+			break;
+		case 3:
+			printf("Recibiendo BPDU...\n");
+			receivebpdu(node, bpdu);
+		}//dependiendo el orden de ejecución; envia, lee o espera
+	}
+	else
+	{
+		switch(execution_order)
+		{
+		case 1:
+			printf("Recibiendo BPDU...\n");
+			receivebpdu(sock, bpdu);
+			break;
+		case 2:
+			buildmsg(bpdu, turn);
+			printf("Enviando el BPDU %s...\n", bpdu);
+			sleep(1);
+			sendbpdu(node, bpdu);
+			sendbpdu(sock, bpdu);
+			sleep(SLEEP_SECONDS);
+			return;
+		case 3:
+			printf("Recibiendo BPDU...\n");
+			receivebpdu(sock, bpdu);
+		}//dependiendo el orden de ejecución; envia, lee o espera
+	}//envía el mensaje al nodo en turno
+	unsigned short int other_id;
+	unsigned long long int other_mac;
+	unsigned long long int other_priority;
+	unsigned int other_bridge;
+	printf("Se ha recibido el BPDU %s\n", bpdu);
+	//comprueba quien tiene la menor prioridad
+	other_id = (short) bintoint(bpdu, 4);
+	bpdu += 4;
+	other_mac = bintol(bpdu);
+	bpdu += 64;
+	other_bridge = bintoi(bpdu);
+	bpdu += 32;
+	other_priority = bintol(bpdu);
+	if(priority +mac_addr == other_priority)
+	{
+		if(other_bridge < p1)
+		{
+			printf("El nodo %i con MAC %llx es la ra\u00EDz\n", other_id,
+				other_mac);
+			root_id = other_id;
+			root_mac = other_mac;
+			root_priority = other_priority;
+			root_bridge = p1;
+		}
+		else if(priority +mac_addr == root_priority)
+		{
+			printf("Soy la ra\u00EDz\n");
+		}
+		else
+		{
+			printf("El nodo %i con MAC %llx es la ra\u00EDz\n", root_id,
+				root_mac);
+		}//verifica y muestra quien es la raíz
+	}
+	else if(priority +mac_addr > other_priority)
+	{
+		printf("El nodo %i con MAC %llx es la ra\u00EDz\n", other_id,
+			other_mac);
+		root_id = other_id;
+		root_mac = other_mac;
+		root_priority = other_priority;
+		root_bridge = p1;
+	}
+	else  if(priority +mac_addr == root_priority)
+	{
+		printf("Soy la ra\u00EDz\n");
+	}
+	else
+	{
+		printf("El nodo %i con MAC %llx es la ra\u00EDz\n", root_id,
+			root_mac);
+	}//decide quien fue la raíz entre este y uno de los dos nodos
+}//comunicate
+
+/*
+ * Recibe un BPDU de uno de los otros nodos en la red
+ */
+void receivebpdu(int sockdesciprtor, char *data)
+{
+	if(readsocket(sockdesciprtor, data, BPDU_LENGTH) < 0)
+	{
+		printf("Ha ocurrido un error al leer del socket\n");
+		exit(EXIT_FAILURE);
+	}//realiza una lectura segura
+}//receivebpdu
+
+/*
+ * Envía un BPDU a uno de los otros nodos en la red
+ */
+void sendbpdu(int sockdescriptor, char *data)
+{
+	if(writesocket(sockdescriptor, data, BPDU_LENGTH) < 0)
+	{
+		printf("Ha ocurrido un error al escribir en el socket\n");
+		exit(EXIT_FAILURE);
+	}//comprueba que no ocurra algún error
+}//sendbpdu
+
+/*
+ * Construye un BPDU
+ */
+void buildmsg(char* msg, unsigned short int turn)
+{
+	char aux[64];
+	char *premsg = malloc(BPDU_LENGTH);
+	// 4 bits del ID
+	itobin(4, id, aux, 64);
+	strcat(premsg, aux);
+	// 8 bytes de MAC
+	itobin(64, mac_addr, aux, 64);
+	strcat(premsg, aux);
+	// 4 bytes de costo del puente
+	if(turn == 2)
+	{
+		itobin(32, p1, aux, 64);
+	}
+	else
+	{
+		itobin(32, p0, aux, 64);
+	}//asigna el puerto debido
+	strcat(premsg, aux);
+	// 8 bytes identificador del puente
+	itobin(64, priority +mac_addr, aux, 64);
+	strcat(premsg, aux);
+	// finalmente, 2 bytes identificador del puerto
+	itobin(16, portno, aux, 64);
+	strcat(premsg, aux);
+	strcpy(msg, premsg);
+}//buildmsg
 
