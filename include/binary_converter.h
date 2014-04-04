@@ -1,5 +1,6 @@
-#include "string.h"
-#include "stdio.h"
+#include <string.h>
+#include <stdio.h>
+#include <math.h>
 
 /*
  *
@@ -10,6 +11,8 @@
  * manuel_castillo_cc@ciencias.unam.mx
  * Autor: Mijail Gutiérrez Valdéz; 3-423250-3.
  * mij000@ciencias.unam.mx
+ * Autor: José Carlos León Pérez
+ * carlos.leon@ciencias.unam.mx
  * Version 1, marzo 2014
  */
 
@@ -18,4 +21,5 @@ short int bintos(char *);
 int bintoi(char *);
 long long int bintol(char *);
 void strrev(char *);
+long long int bintoint(char *, unsigned int);
 

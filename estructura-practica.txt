@@ -4,7 +4,6 @@ Para ésto, usará paquetes más simples que los que se usa en la práctica; per
 con la misma estructura básica. Estos se compondrán de:
 
 4 bits - identificador del nodo raíz
-2 bytes - Extensión de indentificador del sistema de nodo raíz
 8 bytes - Dirección MAC del nodo raíz
 4 bytes - costo del puente
 8 bytes - Identificador del puente

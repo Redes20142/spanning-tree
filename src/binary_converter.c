@@ -8,6 +8,8 @@
  * manuel_castillo_cc@ciencias.unam.mx
  * Autor: Mijail Gutiérrez Valdéz; 3-423250-3.
  * mij000@ciencias.unam.mx
+ * Autor: José Carlos León Pérez
+ * carlos.leon@ciencias.unam.mx
  * Version 1, marzo 2014
  */
 
@@ -19,12 +21,17 @@
 void itobin(unsigned short int bitnum, long long number, char *res,
 	unsigned int ressize)
 {
-	if(bitnum != 16 && bitnum != 32 && bitnum != 64)
+	if(bitnum > 64)
 	{
 		printf("itobin: Error. No se reconoce el n\u00FAmero de bits ");
 		printf("del entero a convertir a binario\n");
 		return;
 	}//comprueba que el número de bits dado esté en el rango esperado
+	if(bitnum < log2(number) +1)
+	{
+		printf("itobin: Error. No es posible representar %lld con %hu bits\n",
+			number, bitnum);
+	}//comprueba que el numero de bits sea suficiente para número dado
 	unsigned short int sign;
 	memset(res, 0, ressize);
 	if(number >= 0)
@@ -169,7 +176,7 @@ long long int bintol(char *binstr)
 		printf("La cadena debe tener al menos 64 caracteres de longitud\n");
 		return -1;
 	}//si la cadena no tiene una longitud válida
-	int result = 0;
+	long long int result = 0;
 	short int i;
 	if(binstr[63] == '1')
 	{
@@ -208,4 +215,36 @@ void strrev(char *string)
     	end--;
    }//invierte la cadena
 }//strrev
+
+/*
+ * Dada una cadena, convierte tantos bits se le pidan en un número entero
+ */
+long long int bintoint(char *binstr, unsigned int bits)
+{
+	if(strlen(binstr) < bits)
+	{
+		printf("La cadena debe tener al menos %i caracteres de longitud\n",
+			bits);
+		return -1;
+	}//si la cadena no tiene una longitud válida
+	long long int result = 0;
+	short int i;
+	bits--;
+	if(binstr[bits] == '1')
+	{
+		result = 1;
+	}
+	bits--;
+	for(i = bits; i >= 0; i--)
+	{
+		if(binstr[i] == '1')
+		{
+			result += 2 << (bits -i);
+		} else if(binstr[i] != '0') {
+			printf("La cadena debe contener \u00FAnicamente caracteres binarios\n");
+			return -1;
+		}//si vale la pena hacer el cálculo y verifica que sean binarios
+	}//recorre la cadena sumando potencias de 2
+	return result;
+}//bintoint
 
