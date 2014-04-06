@@ -2,6 +2,8 @@ NOMBRE PRACTICA O TAREA
 REDES DE COMPUTADORAS 2014-1
 Manuel Ignacio Castillo López; 3-0801743-8
 Mijail Gutiérrez Valdéz; 3-423250-3.
+José Carlos León Pérez; 10000134-7
+
 Profr. José Luis Torres Rodríguez
 Ayudante de laboratorio: Luis Enrique Serrano Gutiérrez
 
